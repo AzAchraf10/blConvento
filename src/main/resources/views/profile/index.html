@@ -1,0 +1,108 @@
+<div th:fragment="content" xmlns:th="http://www.thymeleaf.org">
+
+    <!-- ═══ HEADER ═══ -->
+    <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:20px; flex-wrap:wrap; margin-bottom:28px;">
+        <div>
+            <div style="margin-bottom:8px; display:flex; gap:8px;">
+                <span class="badge badge-blue">Compte Agent</span>
+                <span class="badge badge-emerald">Session Active</span>
+            </div>
+            <h1 style="font-family:'Space Grotesk',sans-serif; font-size:26px; font-weight:700; color:var(--text-primary); margin:0 0 6px 0;">Mon Profil &amp; Sécurité</h1>
+            <p style="font-size:13px; color:var(--text-secondary); margin:0;">
+                Gérez vos informations personnelles et vos identifiants d'accès.
+            </p>
+        </div>
+        <a th:href="@{/dashboard}" class="btn btn-ghost btn-sm">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M19 12H5m0 0l7 7m-7-7l7-7"/></svg>
+            Retour au Tableau de Bord
+        </a>
+    </div>
+
+    <!-- ═══ PROFILE SUMMARY CARD ═══ -->
+    <div class="panel" style="margin-bottom:24px; padding:24px; display:flex; align-items:center; justify-content:space-between; gap:20px; flex-wrap:wrap;">
+        <div style="display:flex; align-items:center; gap:16px;">
+            <div style="width:56px; height:56px; border-radius:14px; background:var(--blue); color:#fff; display:flex; align-items:center; justify-content:center; font-family:'Space Grotesk',sans-serif; font-size:22px; font-weight:700; border:1px solid rgba(56,139,253,0.4);"
+                 th:text="${#strings.isEmpty(user.nom) ? 'A' : #strings.substring(user.nom, 0, 1)}">A</div>
+            <div>
+                <h2 style="font-family:'Space Grotesk',sans-serif; font-size:18px; font-weight:700; color:var(--text-primary); margin:0 0 4px 0;" th:text="${user.nom}">Nom Agent</h2>
+                <div style="font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--blue-hi);" th:text="${user.email}">agent@dsit.gov.ma</div>
+            </div>
+        </div>
+
+        <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
+            <span th:if="${user.role.name() == 'SUPER_ADMIN'}" class="badge badge-violet">Accès Super Admin</span>
+            <span th:if="${user.role.name() == 'ADMIN'}" class="badge badge-gold">Accès Administrateur</span>
+            <span th:if="${user.role.name() == 'CONSULTATION'}" class="badge badge-blue">Profil Consultation</span>
+
+            <span class="badge badge-emerald" th:text="${user.actif ? 'Compte Actif ✓' : 'Compte Désactivé'}">Compte Actif ✓</span>
+        </div>
+    </div>
+
+    <!-- ═══ MAIN FORM GRID ═══ -->
+    <form th:action="@{/profile}" method="post">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap:24px; align-items:start;">
+
+            <!-- ── CARD 1: INFORMATIONS PERSONNELLES ── -->
+            <div class="panel">
+                <div class="panel-header" style="padding:16px 20px; display:flex; align-items:center; gap:10px;">
+                    <svg width="16" height="16" fill="none" stroke="var(--blue-hi)" stroke-width="2" viewBox="0 0 24 24"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                    <span style="font-family:'Space Grotesk',sans-serif; font-size:14px; font-weight:600; color:var(--text-primary);">
+                        Coordonnées &amp; Informations Agent
+                    </span>
+                </div>
+
+                <div style="padding:20px; display:flex; flex-direction:column; gap:18px;">
+                    <div>
+                        <label class="field-label" for="nom">Nom &amp; Prénom Agent *</label>
+                        <input id="nom" type="text" name="nom" required th:value="${user.nom}" class="field" placeholder="Ex: Imad BOULOUIZ">
+                    </div>
+
+                    <div>
+                        <label class="field-label" for="email">Adresse E-mail Institutionnelle *</label>
+                        <input id="email" type="email" name="email" required th:value="${user.email}" class="field" placeholder="agent@dsit.gov.ma">
+                        <span style="font-size:11px; color:var(--text-muted); margin-top:4px; display:block;">
+                            Utilisée pour l'authentification et les notifications système.
+                        </span>
+                    </div>
+
+                    <div>
+                        <label class="field-label">Niveau de Privilège Système</label>
+                        <input type="text" readonly disabled th:value="${user.role}" class="field" style="background:var(--bg-elevated); color:var(--text-muted); font-family:'JetBrains Mono',monospace;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── CARD 2: CHANGEMENT DE MOT DE PASSE ── -->
+            <div class="panel">
+                <div class="panel-header" style="padding:16px 20px; display:flex; align-items:center; gap:10px;">
+                    <svg width="16" height="16" fill="none" stroke="var(--gold-hi)" stroke-width="2" viewBox="0 0 24 24"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                    <span style="font-family:'Space Grotesk',sans-serif; font-size:14px; font-weight:600; color:var(--text-primary);">
+                        Sécurité &amp; Changement de Mot de Passe
+                    </span>
+                </div>
+
+                <div style="padding:20px; display:flex; flex-direction:column; gap:18px;">
+                    <div style="background:var(--bg-elevated); border:1px solid var(--border-mid); border-radius:8px; padding:12px 14px;">
+                        <span style="font-size:12px; color:var(--text-secondary); line-height:1.5;">
+                            🔒 Laissez le champ ci-dessous vide si vous ne souhaitez pas modifier votre mot de passe actuel.
+                        </span>
+                    </div>
+
+                    <div>
+                        <label class="field-label" for="newPassword">Nouveau Mot de Passe</label>
+                        <input id="newPassword" type="password" name="newPassword" class="field" placeholder="Minimum 6 caractères">
+                    </div>
+
+                    <button type="submit" class="btn btn-blue btn-lg" style="margin-top:10px;">
+                        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
+                        Enregistrer les Modifications du Profil
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </form>
+
+</div>

@@ -1,0 +1,16 @@
+<!DOCTYPE html><html lang="fr" xmlns:th="http://www.thymeleaf.org"
+th:replace="~{layouts/app :: layout(~{::section}, 'Tableau de bord')}"><head><title>Tableau de bord</title></head>
+<body><section><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:28px">
+<div><span class="badge badge-blue">Pilotage DSIT</span><h1 style="font-family:'Space Grotesk';font-size:28px;font-weight:700;margin:8px 0 6px;color:var(--text-primary)">Tableau de Bord des Conventions</h1>
+<p style="font-size:13px;color:var(--text-secondary);margin:0">Suivi centralisé des conventions partenariales provinciales.</p></div>
+<a th:if="${isAdmin}" th:href="@{/conventions/create}" class="btn btn-blue">＋ Nouvelle Convention</a></div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:24px">
+<div class="panel" style="padding:18px"><span class="field-label">Conventions actives</span><div style="font:700 28px 'Space Grotesk';color:var(--blue-hi)" th:text="${stats.totalCount}">0</div></div>
+<div class="panel" style="padding:18px"><span class="field-label">Montant total</span><div style="font:700 22px 'Space Grotesk';color:var(--gold-hi)" th:text="${#numbers.formatDecimal(stats.totalMontant,1,2)} + ' DH'">0 DH</div></div>
+<div class="panel" style="padding:18px"><span class="field-label">Engagement moyen</span><div style="font:700 28px 'Space Grotesk';color:var(--emerald-hi)" th:text="${stats.avgEngagement} + '%'">0%</div></div>
+<div class="panel" style="padding:18px"><span class="field-label">Terminées</span><div style="font:700 28px 'Space Grotesk';color:var(--violet-hi)" th:text="${stats.countTerminee}">0</div></div></div>
+<div class="panel" style="overflow:hidden"><div class="panel-header" style="padding:14px 20px;display:flex;justify-content:space-between;align-items:center"><span style="font:600 14px 'Space Grotesk';color:var(--text-primary)">Registre des conventions</span><a th:href="@{/conventions}" class="btn btn-ghost btn-sm">Voir tout →</a></div>
+<div style="overflow-x:auto"><table class="data-table"><thead><tr><th>Convention</th><th>Maître d'ouvrage</th><th>Signature</th><th>Exécution</th><th>Engagement</th></tr></thead>
+<tbody><tr th:each="c:${conventions}"><td><a th:href="@{/conventions/{id}(id=${c.id})}" th:text="${c.intitule}" style="font-weight:600;color:var(--text-primary)">Convention</a><div style="font-size:11px;color:var(--text-muted)" th:text="'N°'+${c.id}">N°1</div></td>
+<td th:text="${c.maitreOuvrage.nom}">—</td><td><span class="badge badge-blue" th:text="${c.statutSignature}">Signature</span></td><td><span class="badge badge-dim" th:text="${c.statutExecution}">Exécution</span></td><td><span class="badge badge-emerald" th:text="${c.tauxEngagement}+'%'">0%</span></td></tr>
+<tr th:if="${#lists.isEmpty(conventions)}"><td colspan="5" style="text-align:center;padding:40px;color:var(--text-muted)">Aucune convention active.</td></tr></tbody></table></div></div></section></body></html>

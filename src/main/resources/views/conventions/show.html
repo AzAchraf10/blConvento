@@ -1,0 +1,191 @@
+<div th:fragment="content" xmlns:th="http://www.thymeleaf.org">
+
+    <!-- ═══ BREADCRUMB & HEADER ═══ -->
+    <div style="margin-bottom:28px;">
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
+            <a th:href="@{/conventions}" style="font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text-secondary); text-decoration:none;" onmouseover="this.style.color='var(--blue-hi)';" onmouseout="this.style.color='var(--text-secondary)';">Tableau de Bord</a>
+            <span style="color:var(--border-loud); font-size:12px;">/</span>
+            <span style="font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text-primary);">Convention N°<span th:text="${convention.id}">0</span></span>
+        </div>
+
+        <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:20px; flex-wrap:wrap;">
+            <div style="flex:1; min-width:0;">
+                <div style="margin-bottom:10px;"><span class="badge badge-blue">Fiche Détaillée</span></div>
+                <h1 style="font-family:'Space Grotesk',sans-serif; font-size:24px; font-weight:700; color:var(--text-primary); margin:0 0 6px 0; line-height:1.2;" th:text="${convention.intitule}">Intitulé</h1>
+                <p style="font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text-secondary); margin:0;">
+                    N°<span th:text="${convention.id}">0</span> ·
+                    Du <span th:text="${#temporals.format(convention.dateDebut, 'dd/MM/yyyy')}">01/01/2026</span>
+                    au <span th:text="${#temporals.format(convention.dateFin, 'dd/MM/yyyy')}">01/01/2026</span>
+                </p>
+            </div>
+
+            <div style="display:flex; gap:8px; flex-shrink:0; flex-wrap:wrap; align-items:center;">
+                <th:block th:if="${isAdmin}">
+                    <a th:href="@{/conventions/{id}/edit(id=${convention.id})}" class="btn btn-blue btn-sm">
+                        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                        Éditer
+                    </a>
+                    <form th:action="@{/conventions/{id}/archive(id=${convention.id})}" method="post" style="display:inline;" onsubmit="return confirm('Voulez-vous vraiment archiver cette convention ?');">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                        <button type="submit" class="btn btn-ghost btn-sm" style="color:var(--gold-hi);">
+                            📦 Archiver
+                        </button>
+                    </form>
+                </th:block>
+                <a th:href="@{/conventions}" class="btn btn-ghost btn-sm">← Retour</a>
+            </div>
+        </div>
+    </div>
+
+    <div th:if="${convention.archived}" style="background:rgba(217,119,6,0.1); border:1px solid var(--gold); border-radius:10px; padding:14px 20px; margin-bottom:20px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+        <div style="display:flex; align-items:center; gap:10px;">
+            <span style="font-size:22px;">📦</span>
+            <div>
+                <div style="font-weight:600; color:var(--gold-hi); font-size:14px;">Convention Archivée Logiquement</div>
+                <div style="font-size:12px; color:var(--text-secondary);">Cette convention est disponible en consultation directe sans obligation de restauration.</div>
+            </div>
+        </div>
+        <form th:if="${isAdmin}" th:action="@{/conventions/{id}/restore(id=${convention.id})}" method="post" style="margin:0;">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+            <button type="submit" class="btn btn-emerald btn-sm">Restaurer la convention</button>
+        </form>
+    </div>
+
+    <!-- ═══ MAIN BENTO GRID ═══ -->
+    <div style="display:grid; grid-template-columns:1fr 320px; gap:20px; align-items:start;">
+
+        <!-- LEFT: Main Content -->
+        <div style="display:flex; flex-direction:column; gap:16px;">
+
+            <!-- Objet -->
+            <div class="panel">
+                <div class="panel-header" style="padding:12px 20px;">
+                    <span style="font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:600; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.08em;">Objet de la Convention</span>
+                </div>
+                <div style="padding:20px; font-size:14px; color:var(--text-primary); line-height:1.7;" th:text="${convention.objet}">Objet</div>
+            </div>
+
+            <!-- MO + Montant + Communes + Secteurs -->
+            <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:14px;">
+
+                <div class="panel" style="padding:16px;">
+                    <div style="font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:600; color:var(--gold); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:8px;">Maître d'Ouvrage</div>
+                    <div style="font-size:14px; font-weight:600; color:var(--text-primary);" th:text="${convention.maitreOuvrage != null ? convention.maitreOuvrage.nom : '—'}">MO</div>
+                </div>
+
+                <div class="panel" style="padding:16px;">
+                    <div style="font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:600; color:var(--blue); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:8px;">Montant Global</div>
+                    <div style="font-family:'JetBrains Mono',monospace; font-size:14px; font-weight:700; color:var(--text-primary);">
+                        <span th:text="${#numbers.formatDecimal(convention.montant, 1, 'POINT', 2, 'COMMA')}">0,00</span>
+                        <span style="font-size:11px; color:var(--text-secondary);">Dhs</span>
+                    </div>
+                </div>
+
+                <div class="panel" style="padding:16px;">
+                    <div style="font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:600; color:var(--gold); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:8px;">Communes</div>
+                    <div style="display:flex; flex-wrap:wrap; gap:6px;">
+                        <span th:if="${#sets.isEmpty(convention.communes)}" style="font-size:12px; color:var(--text-muted); font-style:italic;">Aucune</span>
+                        <span th:each="c : ${convention.communes}" class="badge badge-dim" style="font-size:11px;" th:text="${c.nom}">Commune</span>
+                    </div>
+                </div>
+
+                <div class="panel" style="padding:16px;">
+                    <div style="font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:600; color:var(--emerald); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:8px;">Secteurs</div>
+                    <div style="display:flex; flex-wrap:wrap; gap:6px;">
+                        <span th:if="${#sets.isEmpty(convention.secteurs)}" style="font-size:12px; color:var(--text-muted); font-style:italic;">Aucun</span>
+                        <span th:each="s : ${convention.secteurs}" class="badge badge-emerald" style="font-size:11px;" th:text="${s.nom}">Secteur</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Partenaires & Signatures -->
+            <div class="panel" style="overflow:hidden;">
+                <div class="panel-header" style="padding:12px 20px; display:flex; align-items:center; justify-content:space-between;">
+                    <span style="font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:600; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.08em;">Partenaires &amp; Signatures</span>
+                    <span class="badge badge-violet" th:text="${#lists.size(convention.partenaires)}">0</span>
+                </div>
+                <div th:if="${#lists.isEmpty(convention.partenaires)}" style="padding:24px 20px; text-align:center; color:var(--text-muted); font-size:13px; font-style:italic;">Aucun partenaire renseigné.</div>
+                <table th:unless="${#lists.isEmpty(convention.partenaires)}" class="data-table">
+                    <thead>
+                        <tr>
+                            <th style="text-align:left;">Code</th>
+                            <th style="text-align:left;">Partenaire</th>
+                            <th style="text-align:right;">Apport / Investissement</th>
+                            <th style="text-align:center;">Signature</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="p : ${convention.partenaires}">
+                            <td><span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--violet-hi); font-weight:600;" th:text="${p.partenaire.code}">CODE</span></td>
+                            <td style="font-size:13px; font-weight:500; color:var(--text-primary);" th:text="${p.partenaire.nom}">Nom</td>
+                            <td style="text-align:right; font-family:'JetBrains Mono',monospace; font-size:12px; font-weight:600; color:var(--text-primary);">
+                                <span th:text="${#numbers.formatDecimal(p.montantInvesti, 1, 'POINT', 2, 'COMMA')}">0,00</span>
+                                <span style="font-size:10px; color:var(--text-secondary);">Dhs</span>
+                            </td>
+                            <td style="text-align:center;">
+                                <span th:if="${p.aSigne}" class="badge badge-emerald">✓ Signé</span>
+                                <span th:unless="${p.aSigne}" class="badge badge-dim">Non signé</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+
+        <!-- RIGHT: Status & Metrics -->
+        <div style="display:flex; flex-direction:column; gap:14px;">
+
+            <!-- Progression -->
+            <div class="panel" style="padding:20px;">
+                <div style="font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:600; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:12px;">Progression Globale</div>
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+                    <span style="font-family:'Space Grotesk',sans-serif; font-size:32px; font-weight:700; color:var(--text-primary); line-height:1;">
+                        <span th:text="${#numbers.formatInteger(convention.tauxEngagement, 1)}">0</span><span style="font-size:16px; color:var(--text-secondary);">%</span>
+                    </span>
+                    <span th:if="${convention.tauxEngagement == 100}" class="badge badge-emerald">Complété</span>
+                    <span th:if="${convention.tauxEngagement > 0 and convention.tauxEngagement < 100}" class="badge badge-gold">En cours</span>
+                    <span th:if="${convention.tauxEngagement == 0}" class="badge badge-dim">Non démarré</span>
+                </div>
+                <div class="progress-track" style="height:8px;">
+                    <div th:class="'progress-fill ' + (${convention.tauxEngagement} == 100 ? 'emerald' : (${convention.tauxEngagement} > 0 ? 'gold' : ''))"
+                         th:style="'width:' + ${convention.tauxEngagement} + '%'"></div>
+                </div>
+            </div>
+
+            <!-- Statut Signature -->
+            <div class="panel" style="padding:20px;">
+                <div style="font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:600; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:10px;">Statut Signature</div>
+                <span th:if="${convention.statutSignature == 'Totale'}" class="badge badge-emerald" style="font-size:13px; padding:6px 14px;">✓ Signature Totale</span>
+                <span th:if="${convention.statutSignature == 'Partielle'}" class="badge badge-gold" style="font-size:13px; padding:6px 14px;">⏳ Signature Partielle</span>
+                <span th:if="${convention.statutSignature != 'Totale' and convention.statutSignature != 'Partielle'}" class="badge badge-dim" style="font-size:13px; padding:6px 14px;">En attente</span>
+            </div>
+
+            <!-- Statut Exécution -->
+            <div class="panel" style="padding:20px;">
+                <div style="font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:600; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:10px;">Statut Exécution</div>
+                <span th:if="${convention.statutExecution == 'Terminée'}" class="badge badge-emerald" style="font-size:13px; padding:6px 14px;">Terminée</span>
+                <span th:if="${convention.statutExecution == 'En cours'}" class="badge badge-gold" style="font-size:13px; padding:6px 14px;">En cours</span>
+                <span th:if="${convention.statutExecution == 'Annulée'}" class="badge badge-crimson" style="font-size:13px; padding:6px 14px;">Annulée</span>
+                <span th:if="${convention.statutExecution != 'Terminée' and convention.statutExecution != 'En cours' and convention.statutExecution != 'Annulée'}" class="badge badge-dim" style="font-size:13px; padding:6px 14px;">En attente</span>
+            </div>
+
+            <!-- Document PDF -->
+            <div class="panel" style="padding:20px;">
+                <div style="font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:600; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:12px;">Document Officiel PDF</div>
+                <a th:if="${convention.cheminFichierPdf != null}" th:href="@{'/' + ${convention.cheminFichierPdf}}" target="_blank" class="btn btn-blue" style="width:100%; justify-content:center;">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    Consulter le PDF
+                </a>
+                <div th:if="${convention.cheminFichierPdf == null}" style="padding:16px; background:var(--bg-void); border:1px dashed var(--border-mid); border-radius:8px; text-align:center;">
+                    <div style="font-size:20px; margin-bottom:6px;">📄</div>
+                    <div style="font-size:12px; color:var(--text-muted); font-style:italic;">Aucun document attaché</div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      class="h-full" data-theme="light"
+      th:fragment="layout(content, title)">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title th:text="${title + ' | BLconvento'}">BLconvento</title>
+<meta name="description" content="BLconvento — Suivi des conventions - DSIT">
+<link rel="icon" type="image/png" th:href="@{/images/logo.png}">
+<link rel="shortcut icon" th:href="@{/favicon.ico}">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<link rel="stylesheet" th:href="@{/css/app.css}">
+<style>
+.flatpickr-calendar{font-family:'Inter',sans-serif!important;border:1px solid var(--border-mid)!important;border-radius:12px}
+.no-scrollbar::-webkit-scrollbar{display:none}.no-scrollbar{-ms-overflow-style:none;scrollbar-width:none}
+.theme-toggle-btn{background:var(--bg-elevated);border:1px solid var(--border-mid);color:var(--text-primary);padding:6px 12px;border-radius:8px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600}
+</style>
+<script>(function(){document.documentElement.setAttribute('data-theme',localStorage.getItem('dsit-theme')||'light')})()</script>
+</head>
+<body class="bg-void text-primary h-full flex flex-col antialiased">
+<header style="background:var(--bg-surface);border-bottom:1px solid var(--border-dim);position:sticky;top:0;z-index:50">
+<div style="max-width:1600px;margin:auto;padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:64px">
+<a th:href="${isAuthenticated} ? @{/} : @{/login}" style="display:flex;align-items:center;gap:12px;text-decoration:none">
+<img th:src="@{/images/logo.png}" alt="BLconvento" style="width:52px;height:52px;object-fit:contain">
+<div><div style="font-family:'Space Grotesk';font-weight:700;font-size:18px;color:var(--text-primary)">BLconvento</div>
+<div style="font-family:'JetBrains Mono';font-size:10px;color:var(--gold-hi);letter-spacing:.06em">Suivi des Conventions - DSIT</div></div></a>
+<div style="display:flex;align-items:center;gap:14px">
+<button type="button" onclick="toggleTheme()" class="theme-toggle-btn"><span id="themeIcon">☀️</span><span id="themeText">Mode Clair</span></button>
+<div th:if="${isAuthenticated}" style="display:flex;align-items:center;gap:12px">
+<a th:href="@{/profile}" style="display:flex;align-items:center;gap:8px;background:var(--bg-elevated);border:1px solid var(--border-mid);border-radius:8px;padding:8px 14px;text-decoration:none">
+<span class="pulse-dot emerald"></span><span style="font-size:12px;font-weight:600;color:var(--text-primary)" th:text="${currentUser.nom}">Utilisateur</span></a>
+<form th:action="@{/logout}" method="post" style="margin:0"><input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+<button type="submit" class="btn btn-ghost btn-sm">↪ Déconnexion</button></form>
+</div></div></div></header>
+<nav th:if="${isAuthenticated}" style="background:var(--bg-void);border-bottom:1px solid var(--border-dim);position:sticky;top:64px;z-index:40">
+<div style="max-width:1600px;margin:auto;padding:0 24px"><div class="no-scrollbar" style="display:flex;gap:6px;overflow-x:auto;padding:10px 0">
+<a th:href="@{/}" class="nav-tab" th:classappend="${currentPage=='dashboard'?' active-blue':''}">⌂ Tableau de Bord</a>
+<a th:href="@{/conventions}" class="nav-tab" th:classappend="${currentPage=='conventions'?' active-blue':''}">▤ Conventions</a>
+<a th:if="${isAdmin}" th:href="@{/conventions/create}" class="nav-tab" th:classappend="${currentPage=='create'?' active-blue':''}">＋ Nouvelle Convention</a>
+<a th:if="${isAdmin}" th:href="@{/referentiels}" class="nav-tab" th:classappend="${currentPage=='referentiels'?' active-gold':''}">⚙ Référentiels</a>
+<a th:href="@{/archives}" class="nav-tab" th:classappend="${currentPage=='archives'?' active-emerald':''}">▣ Archives</a>
+<a th:if="${isSuperAdmin}" th:href="@{/users}" class="nav-tab" th:classappend="${currentPage=='users'?' active-blue':''}">♙ Agents &amp; Accès</a>
+<a th:if="${isSuperAdmin}" th:href="@{/historique}" class="nav-tab" th:classappend="${currentPage=='historique'?' active-violet':''}">✓ Traçabilité Audit</a>
+</div></div></nav>
+<main style="flex:1;padding:32px 0"><div style="max-width:1600px;margin:auto;padding:0 24px">
+<div th:if="${success}" class="alert alert-success" th:text="${success}">Opération réussie.</div>
+<div th:if="${error}" class="alert alert-error" th:text="${error}">Une erreur est survenue.</div>
+<div th:replace="${content}"></div></div></main>
+<footer style="background:var(--bg-surface);border-top:1px solid var(--border-dim);padding:20px 24px">
+<div style="max-width:1600px;margin:auto;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap">
+<span style="font-family:'JetBrains Mono';font-size:11px;color:var(--text-secondary)">Division des Systèmes d'Information et des Télécommunications (DSIT) · Royaume du Maroc · 2026</span>
+<span class="badge badge-blue">Standard DSIT</span></div></footer>
+<script>
+function toggleTheme(){const c=document.documentElement.getAttribute('data-theme')||'light',n=c==='dark'?'light':'dark';localStorage.setItem('dsit-theme',n);updateThemeUI(n)}
+function updateThemeUI(t){document.documentElement.setAttribute('data-theme',t);const i=document.getElementById('themeIcon'),x=document.getElementById('themeText');if(i&&x){i.textContent=t==='dark'?'☀️':'🌙';x.textContent=t==='dark'?'Mode Clair':'Mode Sombre'}}
+document.addEventListener('DOMContentLoaded',()=>updateThemeUI(localStorage.getItem('dsit-theme')||'light'));
+</script>
+</body></html>

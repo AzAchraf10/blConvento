@@ -1,0 +1,226 @@
+<div th:fragment="content" xmlns:th="http://www.thymeleaf.org">
+
+    <!-- ═══ HEADER ═══ -->
+    <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:20px; flex-wrap:wrap; margin-bottom:28px;">
+        <div>
+            <div style="margin-bottom:8px;"><span class="badge badge-blue">Gestion des Accès</span></div>
+            <h1 style="font-family:'Space Grotesk',sans-serif; font-size:26px; font-weight:700; color:var(--text-primary); margin:0 0 6px 0;">Agents &amp; Comptes Utilisateurs</h1>
+            <p style="font-size:13px; color:var(--text-secondary); margin:0;">Administration des comptes agents et des accès au système provincial DSIT.</p>
+        </div>
+        <a th:href="@{/conventions}" class="btn btn-ghost btn-sm">
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M19 12H5m0 0l7 7m-7-7l7-7"/></svg>
+            Tableau de Bord
+        </a>
+    </div>
+
+    <!-- ═══ MAIN GRID: FORM + TABLE ═══ -->
+    <div style="display:grid; grid-template-columns:340px 1fr; gap:20px; align-items:start;">
+
+        <!-- ─── Left: Add Agent Form (page réservée au Super Admin) ─── -->
+        <div class="panel">
+            <div class="panel-header" style="padding:14px 20px; display:flex; align-items:center; gap:8px;">
+                <svg width="14" height="14" fill="none" stroke="var(--blue)" stroke-width="2" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg>
+                <span style="font-family:'Space Grotesk',sans-serif; font-size:13px; font-weight:600; color:var(--text-primary);">Créer un Nouvel Agent</span>
+            </div>
+            <div style="padding:20px;">
+                <form th:action="@{/users}" method="post" style="display:flex; flex-direction:column; gap:16px;">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                    <div>
+                        <label class="field-label">Nom &amp; Prénom *</label>
+                        <input type="text" name="nom" required placeholder="Ex: Karim BENALI" class="field">
+                    </div>
+                    <div>
+                        <label class="field-label">Adresse E-mail *</label>
+                        <input type="email" name="email" required placeholder="k.benali@dsit.gov.ma" class="field">
+                    </div>
+                    <div>
+                        <label class="field-label">Mot de Passe Initial *</label>
+                        <input type="password" name="password" required placeholder="••••••••" class="field">
+                    </div>
+                    <div>
+                        <label class="field-label">Niveau d'Accès *</label>
+                        <select name="role" required class="field">
+                            <option value="ADMIN">Profil Administrateur</option>
+                            <option value="CONSULTATION">Profil Consultation</option>
+                            <option value="SUPER_ADMIN">Profil Super Admin</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-blue" style="width:100%; margin-top:4px;">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg>
+                        Enregistrer l'Agent
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- ─── Right: Users Table ─── -->
+        <div class="panel" style="overflow:hidden;">
+            <div class="panel-header" style="padding:14px 20px; display:flex; align-items:center; justify-content:space-between;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <span style="font-family:'Space Grotesk',sans-serif; font-size:14px; font-weight:600; color:var(--text-primary);">Agents Enregistrés</span>
+                    <span class="badge badge-blue" th:text="${#lists.size(users)}">0</span>
+                </div>
+                <span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-muted);">Sécurité DSIT</span>
+            </div>
+
+            <div style="overflow-x:auto;">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th style="text-align:left;">Identité Agent</th>
+                            <th style="text-align:center;">Profil System</th>
+                            <th style="text-align:center;">Statut</th>
+                            <th style="text-align:right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <th:block th:each="u : ${users}">
+                        <tr>
+                            <td style="min-width:220px;">
+                                <div style="font-weight:600; color:var(--text-primary); font-size:13px;" th:text="${u.nom}">Nom</div>
+                                <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-secondary); margin-top:2px;" th:text="${u.email}">email</div>
+                            </td>
+                            <td style="text-align:center; white-space:nowrap;">
+                                <span th:if="${u.role.name() == 'SUPER_ADMIN'}" class="badge badge-violet">SUPER ADMIN</span>
+                                <span th:if="${u.role.name() == 'ADMIN'}" class="badge badge-gold">ADMIN</span>
+                                <span th:if="${u.role.name() == 'CONSULTATION'}" class="badge badge-blue">CONSULTATION</span>
+                            </td>
+                            <td style="text-align:center;">
+                                <span th:if="${u.actif}" class="badge badge-emerald">Actif</span>
+                                <span th:unless="${u.actif}" class="badge badge-crimson">Inactif</span>
+                            </td>
+                            <td style="text-align:right; white-space:nowrap;">
+                                <div style="display:inline-flex; gap:6px;">
+                                    <button type="button" th:attr="data-user-id=${u.id}" onclick="toggleUserEdit(this)" class="btn btn-ghost btn-sm">Éditer</button>
+                                    <form th:action="@{/users/{id}/delete(id=${u.id})}" method="post" style="display:inline;" onsubmit="return confirm('Supprimer cet agent définitivement ?');">
+                                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                        <button type="submit" class="btn btn-ghost btn-sm" style="color:var(--text-muted);" onmouseover="this.style.color='var(--crimson)';" onmouseout="this.style.color='var(--text-muted)';">Suppr.</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- Edit row drawer -->
+                        <tr th:id="'edit-user-' + ${u.id}" class="hidden" style="background-color:var(--bg-elevated); border-bottom: 2px solid var(--blue);">
+                            <td colspan="4" style="padding:16px 20px;">
+                                <form th:action="@{/users/{id}/update(id=${u.id})}" method="post">
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                    <div style="display:grid; grid-template-columns:1fr 1fr 130px 100px auto; gap:10px; align-items:end;">
+                                        <div>
+                                            <label class="field-label">Nom</label>
+                                            <input type="text" name="nom" th:value="${u.nom}" required class="field" style="font-size:12px; padding:7px 10px;">
+                                        </div>
+                                        <div>
+                                            <label class="field-label">E-mail</label>
+                                            <input type="email" name="email" th:value="${u.email}" required class="field" style="font-size:12px; padding:7px 10px;">
+                                        </div>
+                                        <div>
+                                            <label class="field-label">Niveau</label>
+                                            <select name="role" class="field" style="font-size:12px; padding:7px 10px;">
+                                                <option value="SUPER_ADMIN" th:selected="${u.role.name() == 'SUPER_ADMIN'}">Profil Super Admin</option>
+                                                <option value="ADMIN" th:selected="${u.role.name() == 'ADMIN'}">Profil Admin</option>
+                                                <option value="CONSULTATION" th:selected="${u.role.name() == 'CONSULTATION'}">Profil Consultation</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="field-label">Statut</label>
+                                            <select name="actif" class="field" style="font-size:12px; padding:7px 10px;">
+                                                <option value="true" th:selected="${u.actif}">Actif</option>
+                                                <option value="false" th:selected="${!u.actif}">Inactif</option>
+                                            </select>
+                                        </div>
+                                        <div style="display:flex; align-items:flex-end; gap:6px;">
+                                            <button type="submit" class="btn btn-blue btn-sm">Sauver</button>
+                                            <button type="button" th:attr="data-user-id=${u.id}" onclick="closeUserEdit(this)" class="btn btn-ghost btn-sm">×</button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </td>
+                        </tr>
+                        </th:block>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ─── Demandes de Réinitialisation de Mot de Passe ─── -->
+    <div class="panel" style="margin-top:24px; overflow:hidden;">
+        <div class="panel-header" style="padding:14px 20px; display:flex; align-items:center; justify-content:space-between;">
+            <div style="display:flex; align-items:center; gap:10px;">
+                <span style="font-family:'Space Grotesk',sans-serif; font-size:14px; font-weight:600; color:var(--text-primary);">
+                    Demandes de Réinitialisation de Mot de Passe
+                </span>
+                <span th:class="${#lists.size(resetRequests) > 0 ? 'badge badge-gold' : 'badge badge-emerald'}"
+                      th:text="${#lists.size(resetRequests)} + ' En Attente'">0 En Attente</span>
+            </div>
+            <span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-muted);">
+                Demandes transmises depuis la page de connexion
+            </span>
+        </div>
+
+        <div th:if="${#lists.isEmpty(resetRequests)}" style="padding:30px; text-align:center; color:var(--text-muted); font-size:13px;">
+            Aucune demande de réinitialisation en attente pour le moment.
+        </div>
+
+        <div th:unless="${#lists.isEmpty(resetRequests)}" style="overflow-x:auto;">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th style="text-align:left;">Identité &amp; E-mail</th>
+                        <th style="text-align:center;">Date Demande</th>
+                        <th style="text-align:center;">Statut</th>
+                        <th style="text-align:right;">Action Super Admin</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="reset : ${resetRequests}">
+                        <td>
+                            <div style="font-weight:600; color:var(--text-primary); font-size:13px;" th:text="${reset.user.nom}">Compte</div>
+                            <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--blue-hi);" th:text="${reset.user.email}">email</div>
+                        </td>
+                        <td style="text-align:center; font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-muted);"
+                            th:text="${#temporals.format(reset.createdAt, 'dd/MM/yyyy HH:mm')}">01/01/2026 00:00</td>
+                        <td style="text-align:center;">
+                            <span class="badge badge-gold">En Attente</span>
+                        </td>
+                        <td style="text-align:right; white-space:nowrap;">
+                            <div style="display:inline-flex; gap:6px;">
+                                <form th:action="@{/users/reset-requests/{id}/resolve(id=${reset.id})}" method="post" style="display:inline;">
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                    <button type="submit" class="btn btn-blue btn-sm" onclick="return confirm('Marquer cette demande comme traitée ?');">
+                                        Marquer comme Traité
+                                    </button>
+                                </form>
+
+                                <form th:action="@{/users/reset-requests/{id}/delete(id=${reset.id})}" method="post" style="display:inline;">
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                    <button type="submit" class="btn btn-ghost btn-sm" style="color:var(--text-muted);">Suppr.</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        function toggleUserEdit(btn) {
+            const id = btn.getAttribute('data-user-id');
+            const el = document.getElementById('edit-user-' + id);
+            if (el) {
+                el.classList.toggle('hidden');
+            }
+        }
+        function closeUserEdit(btn) {
+            const id = btn.getAttribute('data-user-id');
+            const el = document.getElementById('edit-user-' + id);
+            if (el) {
+                el.classList.add('hidden');
+            }
+        }
+    </script>
+
+</div>

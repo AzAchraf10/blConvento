@@ -1,0 +1,82 @@
+<div th:fragment="content" xmlns:th="http://www.thymeleaf.org">
+
+    <!-- ═══ HEADER ═══ -->
+    <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:20px; flex-wrap:wrap; margin-bottom:28px;">
+        <div>
+            <div style="margin-bottom:8px;"><span class="badge badge-gold">Coffre-Fort Numérique</span></div>
+            <h1 style="font-family:'Space Grotesk',sans-serif; font-size:26px; font-weight:700; color:var(--text-primary); margin:0 0 6px 0;">Espace d'Archivage Logique</h1>
+            <p style="font-size:13px; color:var(--text-secondary); margin:0;">
+                Conservation sécurisée sans perte d'historique —
+                <span th:text="${#lists.size(conventions)}">0</span> registre(s) archivé(s).
+            </p>
+        </div>
+        <a th:href="@{/conventions}" class="btn btn-ghost btn-sm">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M19 12H5m0 0l7 7m-7-7l7-7"/></svg>
+            Tableau de Bord
+        </a>
+    </div>
+
+    <!-- ═══ ARCHIVES TABLE ═══ -->
+    <div class="panel" style="overflow:hidden;">
+        <div class="panel-header" style="padding:14px 20px; display:flex; align-items:center; justify-content:space-between;">
+            <div style="display:flex; align-items:center; gap:10px;">
+                <span style="font-family:'Space Grotesk',sans-serif; font-size:14px; font-weight:600; color:var(--text-primary);">Registres Archivés</span>
+                <span class="badge badge-gold" th:text="${#lists.size(conventions)}">0</span>
+            </div>
+            <span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-muted);">Archivage Logique</span>
+        </div>
+
+        <div th:if="${#lists.isEmpty(conventions)}" style="padding:60px 20px; text-align:center;">
+            <div style="width:52px; height:52px; background:var(--bg-elevated); border:1px solid var(--border-mid); border-radius:12px; display:inline-flex; align-items:center; justify-content:center; font-size:22px; margin-bottom:14px;">📦</div>
+            <div style="font-family:'Space Grotesk',sans-serif; font-size:16px; font-weight:600; color:var(--text-primary); margin-bottom:6px;">Aucune convention archivée</div>
+            <p style="font-size:13px; color:var(--text-secondary);">Les conventions archivées logiquement apparaîtront ici.</p>
+        </div>
+
+        <div th:unless="${#lists.isEmpty(conventions)}" style="overflow-x:auto;">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th style="text-align:left;">Intitulé Convention</th>
+                        <th style="text-align:left;">Maître d'Ouvrage</th>
+                        <th style="text-align:center;">Statut Exécution</th>
+                        <th style="text-align:center;">Engagement</th>
+                        <th style="text-align:right;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="conv : ${conventions}">
+                        <td style="min-width:240px;">
+                            <div style="font-weight:600; color:var(--text-primary);" th:text="${conv.intitule}">Intitulé</div>
+                            <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-secondary); margin-top:2px;">
+                                N°<span th:text="${conv.id}">0</span> ·
+                                <span th:text="${#temporals.format(conv.dateDebut, 'dd/MM/yyyy')}">01/01/2026</span> →
+                                <span th:text="${#temporals.format(conv.dateFin, 'dd/MM/yyyy')}">01/01/2026</span>
+                            </div>
+                        </td>
+                        <td style="font-size:13px; color:var(--text-secondary); white-space:nowrap;" th:text="${conv.maitreOuvrage.nom}">Maître d'ouvrage</td>
+                        <td style="text-align:center; white-space:nowrap;">
+                            <span class="badge badge-dim" th:text="${conv.statutExecution}">Statut</span>
+                        </td>
+                        <td style="text-align:center;">
+                            <span style="font-family:'JetBrains Mono',monospace; font-size:12px; font-weight:600; color:var(--gold-hi);" th:text="${conv.tauxEngagement} + '%'">0%</span>
+                        </td>
+                        <td style="text-align:right; white-space:nowrap;">
+                            <div style="display:inline-flex; gap:6px; align-items:center;">
+                                <!-- Consultation directe (aucune restauration requise) -->
+                                <a th:href="@{/conventions/{id}(id=${conv.id})}" class="btn btn-ghost btn-sm" style="color:var(--blue-hi);" title="Consulter la fiche et le document PDF sans restaurer">
+                                    👁️ Consulter
+                                </a>
+
+                                <form th:if="${isAdmin}" th:action="@{/conventions/{id}/restore(id=${conv.id})}" method="post" style="display:inline;">
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                    <button type="submit" class="btn btn-emerald btn-sm" title="Restaurer au tableau de bord">Restaurer</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
